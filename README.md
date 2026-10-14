@@ -178,6 +178,51 @@ $snapshot = new CartSnapshot(
 - `missing` lists data you still need before placing the order (`BuyerEmail`, `ShippingAddress`, `BillingAddress`, `FulfillmentOption`, `Payment`).
 - The snapshot validates itself: one currency everywhere, unique line and option ids, a selected option that is actually offered. A violation throws `InvalidCart` or `CurrencyMismatch`.
 
+### Channel and catalog
+
+A `Channel` describes what agents see: currency, language and market. Every catalog request carries a `PricingContext` — the channel plus the country the goods ship to — so your shop can price and tax products the same way it does for its own storefront.
+
+```php
+use Lada\Core\Domain\Catalog\{Availability, PricingContext, Product, ProductPage, ProductRef, SearchQuery};
+use Lada\Core\Domain\Shared\{Channel, Country, Currency, Money, Url};
+
+$channel = new Channel(
+    code: 'default',                  // [a-z0-9_-], up to 64 characters
+    currency: Currency::of('PLN'),
+    locale: 'pl_PL',                  // "pl" or "pl_PL"
+    country: Country::of('PL'),       // ISO 3166-1 alpha-2
+);
+
+$context = PricingContext::forChannel($channel);          // ships to PL
+$toGermany = $context->shippingTo(Country::of('DE'));     // new instance, original unchanged
+```
+
+An agent's search reaches your shop as a `SearchQuery`; you answer with a `ProductPage` ranked by **your** search engine:
+
+```php
+$query->text;     // 'red mug', or null to browse
+$query->limit;    // 1–100, default 20
+$query->cursor;   // null for the first page, otherwise your own cursor from the previous page
+
+$page = new ProductPage(
+    products: [
+        new Product(
+            ref: new ProductRef('MUG-RED'),
+            title: 'Red mug',
+            price: Money::of(39_00, $channel->currency),        // final price for this context
+            availability: Availability::InStock,              // InStock, OutOfStock, BackOrder, PreOrder
+            url: Url::of('https://shop.example/red-mug'),
+            description: 'Ceramic, 330 ml',
+            listPrice: Money::of(49_00, $channel->currency),    // optional "was" price
+            images: [Url::of('https://shop.example/img/red-mug.jpg')],
+        ),
+    ],
+    nextCursor: 'opaque-cursor-for-page-2',                   // null on the last page
+);
+```
+
+`Url` accepts only absolute `http(s)` URLs, because agents can't resolve relative links. Invalid input throws `InvalidChannel`, `InvalidCountry`, `InvalidUrl` or `InvalidCatalog`.
+
 ### Errors
 
 Every exception thrown by Lada implements `Lada\Core\Domain\Exception\LadaException`, so you can catch them in one place.
