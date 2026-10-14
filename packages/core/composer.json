@@ -1,0 +1,19 @@
+{
+    "name": "lada/core",
+    "description": "Framework-free agent-commerce core: checkout session model, state machine and ports.",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lada\\Core\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Lada\\Core\\Tests\\": "tests/"
+        }
+    }
+}
