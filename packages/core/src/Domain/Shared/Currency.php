@@ -17,7 +17,7 @@ final readonly class Currency
 
     public static function of(string $code): self
     {
-        if (1 !== preg_match('/^[A-Z]{3}$/', $code)) {
+        if (1 !== preg_match('/^[A-Z]{3}\z/', $code)) {
             throw InvalidCurrency::code($code);
         }
 
