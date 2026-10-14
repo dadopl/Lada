@@ -6,6 +6,7 @@ namespace Lada\Core\Domain\Cart;
 
 /**
  * Data the shop still needs before the cart can be turned into an order.
+ * Payment is not a requirement: agents hand it over together with the complete request.
  */
 enum Requirement: string
 {
@@ -13,5 +14,4 @@ enum Requirement: string
     case ShippingAddress = 'shipping_address';
     case BillingAddress = 'billing_address';
     case FulfillmentOption = 'fulfillment_option';
-    case Payment = 'payment';
 }
