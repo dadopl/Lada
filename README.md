@@ -132,6 +132,52 @@ $key = IdempotencyKey::fromString($request->headers->get('Idempotency-Key'));
 
 Invalid values throw `InvalidIdentifier`. The protocol a request came through is the `Protocol` enum (`Ucp`, `Acp`, `Mcp`).
 
+### Cart snapshot
+
+Your cart adapter describes the state of your cart as a `CartSnapshot`. It is **the only source of prices in Lada**: every amount comes from your pricing engine, Lada only passes it on and compares it.
+
+```php
+use Lada\Core\Domain\Cart\{CartLine, CartRef, CartSnapshot, FulfillmentOption, LineRef, Message, Requirement, Severity, Totals};
+use Lada\Core\Domain\Catalog\ProductRef;
+use Lada\Core\Domain\Shared\{Currency, Money};
+
+$pln = Currency::of('PLN');
+
+$snapshot = new CartSnapshot(
+    ref: new CartRef((string) $cart->getId()),
+    lines: [
+        new CartLine(
+            ref: new LineRef('1'),
+            product: new ProductRef('MUG-RED'),
+            title: 'Red mug',
+            quantity: 2,
+            unitPrice: Money::of(39_00, $pln),
+            total: Money::of(70_00, $pln),          // after line discount — your number, not recomputed
+        ),
+    ],
+    totals: new Totals(
+        subtotal: Money::of(70_00, $pln),
+        discount: Money::of(0, $pln),
+        shipping: Money::of(15_99, $pln),
+        tax: Money::of(16_08, $pln),
+        total: Money::of(85_99, $pln),
+    ),
+    fulfillmentOptions: [
+        new FulfillmentOption('inpost', 'InPost Paczkomat', Money::of(15_99, $pln), '1–2 days'),
+        new FulfillmentOption('pickup', 'Pickup in store', Money::of(0, $pln)),
+    ],
+    selectedFulfillmentOptionId: 'inpost',
+    messages: [
+        new Message(Severity::Warning, 'low_stock', 'Only 3 left.', '$.line_items[0]'),
+    ],
+    missing: [Requirement::BuyerEmail, Requirement::Payment],
+);
+```
+
+- `messages` tell the agent what is wrong. `Severity` decides what happens next: `Info` and `Warning` never block, `Recoverable` blocks until the agent fixes it, `RequiresBuyerInput` / `RequiresBuyerReview` block until the buyer acts (Lada escalates to the buyer).
+- `missing` lists data you still need before placing the order (`BuyerEmail`, `ShippingAddress`, `BillingAddress`, `FulfillmentOption`, `Payment`).
+- The snapshot validates itself: one currency everywhere, unique line and option ids, a selected option that is actually offered. A violation throws `InvalidCart` or `CurrencyMismatch`.
+
 ### Errors
 
 Every exception thrown by Lada implements `Lada\Core\Domain\Exception\LadaException`, so you can catch them in one place.
