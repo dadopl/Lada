@@ -50,6 +50,7 @@ final class CurrencyTest extends TestCase
         yield 'too short' => ['PL'];
         yield 'too long' => ['PLNX'];
         yield 'digits' => ['985'];
+        yield 'trailing newline' => ["PLN\n"];
     }
 
     #[Test]
