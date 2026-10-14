@@ -28,7 +28,7 @@ Each package has its own `composer.json` (for a later split with `splitsh-lite`)
 | # | Step | Package | Status |
 | --- | --- | --- | --- |
 | 1.1 | Monorepo skeleton: root Composer, PHPUnit, PHPStan (max), PHP-CS-Fixer, Composer scripts, GitHub Actions CI | — | ✅ |
-| 1.2 | Shared kernel: `Currency`, `Money` (minor units, arithmetic, comparison) | core | ⬜ |
+| 1.2 | Shared kernel: `Currency`, `Money` (minor units, arithmetic, comparison) | core | ✅ |
 | 1.3 | Identifiers: `CheckoutSessionId`, `CartRef`, `OrderRef`, `ProductRef`, `IdempotencyKey`, `Protocol` enum | core | ⬜ |
 | 1.4 | Cart model: `CartLine`, `Totals`, `Message` + `Severity`, `FulfillmentOption`, `CartSnapshot` (completeness flags) | core | ⬜ |
 | 1.5 | Catalog model: `Channel`, `PricingContext`, `SearchQuery`, `Product`, `ProductPage` | core | ⬜ |
