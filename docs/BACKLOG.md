@@ -1,6 +1,6 @@
 # Lada — implementation backlog
 
-The milestones from [PLAN.md](PLAN.md) broken down into small steps. **Every step is one pull request**: small enough to review in one sitting, green CI, its own tests and, where it changes how Lada is used, an update of the usage documentation in [README.md](../README.md).
+The milestones from [PLAN.md](PLAN.md) broken down into small steps. **Every step is one pull request**: small enough to review in one sitting, a passing `composer ci`, its own tests and, where it changes how Lada is used, an update of the usage documentation in [README.md](../README.md).
 
 Rules for every step are in [CONTRIBUTING.md](../CONTRIBUTING.md) (PHP 8.5, DDD + hexagonal architecture, SOLID / DRY / KISS, unit tests in Arrange–Act–Assert).
 
@@ -27,7 +27,7 @@ Each package has its own `composer.json` (for a later split with `splitsh-lite`)
 
 | # | Step | Package | Status |
 | --- | --- | --- | --- |
-| 1.1 | Monorepo skeleton: root Composer, PHPUnit, PHPStan (max), PHP-CS-Fixer, Composer scripts, GitHub Actions CI | — | ✅ |
+| 1.1 | Monorepo skeleton: root Composer, PHPUnit, PHPStan (max), PHP-CS-Fixer, Composer scripts | — | ✅ |
 | 1.2 | Shared kernel: `Currency`, `Money` (minor units, arithmetic, comparison) | core | ✅ |
 | 1.3 | Identifiers: `CheckoutSessionId`, `CartRef`, `OrderRef`, `ProductRef`, `IdempotencyKey`, `Protocol` enum | core | ✅ |
 | 1.4 | Cart model: `CartLine`, `Totals`, `Message` + `Severity`, `FulfillmentOption`, `CartSnapshot` (completeness flags) | core | ✅ |
