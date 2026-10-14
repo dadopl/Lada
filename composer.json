@@ -53,6 +53,6 @@
         "stan": "Static analysis, level max",
         "cs": "Check coding standard",
         "cs-fix": "Fix coding standard",
-        "ci": "Everything CI runs"
+        "ci": "Coding standard, static analysis and tests"
     }
 }

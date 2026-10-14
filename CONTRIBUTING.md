@@ -4,7 +4,7 @@
 
 - Work follows [docs/BACKLOG.md](docs/BACKLOG.md). **One backlog step = one branch = one pull request.**
 - Branch name: `step/<number>-<short-name>`, e.g. `step/1.2-money`.
-- A step is done when CI is green, every new class has its tests, the backlog status is updated and — if the step changes how Lada is used — the usage section of [README.md](README.md) is updated in the same PR.
+- A step is done when `composer ci` passes, every new class has its tests, the backlog status is updated and — if the step changes how Lada is used — the usage section of [README.md](README.md) is updated in the same PR.
 
 ## Language and tooling
 
@@ -16,7 +16,7 @@
   composer test      # PHPUnit
   composer stan      # PHPStan, level max
   composer cs        # PHP-CS-Fixer (dry run); composer cs-fix applies fixes
-  composer ci        # everything CI runs
+  composer ci        # coding standard + static analysis + tests
   ```
 
 - How you get PHP 8.5 locally (system package, Docker, …) is up to you; no environment tooling is committed to the repository.
