@@ -2,7 +2,7 @@
 
 **A storefront for AI agents.** Sell from your Symfony shop through Google Gemini, ChatGPT, Claude and any other AI agent — over UCP, ACP and MCP.
 
-> **Status: planning.** No code yet. The design is in [docs/PLAN.md](docs/PLAN.md); feedback is welcome in issues.
+> **Status: in development.** The design is in [docs/PLAN.md](docs/PLAN.md), progress step by step in [docs/BACKLOG.md](docs/BACKLOG.md). Feedback is welcome in issues.
 
 ## What it does
 
@@ -79,15 +79,15 @@ lada:
 7. ACP
 8. 1.0
 
-Details, estimates and open decisions: [docs/PLAN.md](docs/PLAN.md).
+Details, estimates and open decisions: [docs/PLAN.md](docs/PLAN.md). Step-by-step progress: [docs/BACKLOG.md](docs/BACKLOG.md).
 
-## Requirements (planned)
+## Requirements
 
-PHP 8.3+, Symfony 7.x.
+PHP 8.5+, Symfony 7.x (bundle only — the core and protocol packages are framework-free).
 
 ## Contributing
 
-The project is in the design phase. Comments on the plan, protocol edge cases and integration needs are very welcome — open an issue.
+Architecture rules, coding standards and the test convention are in [CONTRIBUTING.md](CONTRIBUTING.md). Comments on the plan, protocol edge cases and integration needs are very welcome — open an issue.
 
 ## License
 
