@@ -34,6 +34,7 @@ packages/bundle/ adapters: Symfony, Doctrine, Messenger, HTTP controllers
 - **Ports** are interfaces in `Application\Port`. The shop implements the shop ports (`CatalogPort`, `CartPort`, …); the bundle implements infrastructure ports (repositories, stores).
 - **Protocol packages** (`ucp`, `acp`, `mcp`) are inbound adapters: they map protocol payloads to core commands and core results back to protocol payloads. They contain no purchase logic.
 - Value objects are `final readonly`, validate in the constructor (or a named constructor) and are compared with `equals()`.
+- Validation regexes anchor the end with `\z`, never `$` (which lets a trailing newline through).
 - Domain errors are dedicated exceptions extending the package's base exception, never generic `\RuntimeException`.
 
 ## SOLID, DRY, KISS
