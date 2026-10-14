@@ -1,0 +1,58 @@
+{
+    "name": "lada/lada",
+    "description": "Lada monorepo: a storefront for AI agents (UCP, ACP, MCP) for Symfony shops.",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.5"
+    },
+    "replace": {
+        "lada/core": "self.version"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lada\\Core\\": "packages/core/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Lada\\Core\\Tests\\": "packages/core/tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.3",
+        "phpstan/phpstan-phpunit": "^2.1",
+        "phpstan/phpstan-strict-rules": "^2.1",
+        "phpunit/phpunit": "^13.4"
+    },
+    "scripts": {
+        "test": "phpunit",
+        "coverage": "@php -d pcov.enabled=1 vendor/bin/phpunit --coverage-text",
+        "stan": "phpstan analyse --memory-limit=1G",
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix",
+        "ci": [
+            "@cs",
+            "@stan",
+            "@test"
+        ]
+    },
+    "scripts-descriptions": {
+        "test": "Run unit tests",
+        "coverage": "Run unit tests with coverage (needs pcov)",
+        "stan": "Static analysis, level max",
+        "cs": "Check coding standard",
+        "cs-fix": "Fix coding standard",
+        "ci": "Everything CI runs"
+    }
+}
