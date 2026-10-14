@@ -223,6 +223,59 @@ $page = new ProductPage(
 
 `Url` accepts only absolute `http(s)` URLs, because agents can't resolve relative links. Invalid input throws `InvalidChannel`, `InvalidCountry`, `InvalidUrl` or `InvalidCatalog`.
 
+### Cart draft
+
+When an agent creates or updates a cart, your adapter receives a `CartDraft`: the **complete** state the agent wants (always a full replacement, never a patch). You apply it to your own cart and answer with a `CartSnapshot`.
+
+```php
+$draft->lines;                 // list<DraftLine>: ProductRef + quantity (> 0) — no prices, those are yours
+$draft->buyer->email;          // ?Email (validated)
+$draft->buyer->fullName;       // ?string
+$draft->buyer->phone;          // ?string
+$draft->shippingAddress;       // ?Address: name, street, city, postalCode, Country, streetLine2, region, phone
+$draft->billingAddress;        // ?Address
+$draft->fulfillmentOptionId;   // ?string — one of the ids you offered in the snapshot
+$draft->discountCodes;         // list<string>
+```
+
+Agents collect buyer data step by step, so every buyer field is optional. Report what you still need in `CartSnapshot::$missing`.
+
+### Payment
+
+Agents hand over payment credentials (Google Pay token, ACP Shared Payment Token) as a `PaymentInstrument`. **Lada never charges it.** A payment handler (port in step 1.7) translates it into a `GatewayPayment`, which is one of *your* payment methods plus the data *your* gateway expects:
+
+```php
+use Lada\Core\Domain\Payment\GatewayPayment;
+
+$instrument->handlerId;     // 'com.google.pay'
+$instrument->token;         // the credential
+$instrument->brand;         // 'visa' — display only
+$instrument->lastDigits;    // '4242' — display only
+
+$payment = new GatewayPayment('stripe', [
+    'payment_method_data' => ['shared_payment_granted_token' => $instrument->token],
+]);
+```
+
+Both classes mask credentials in `var_dump()` / `print_r()` output, so tokens don't leak into logs.
+
+### Placing the order
+
+Your order placement adapter places the order through your regular checkout path and reports the outcome as a `PlacementResult`:
+
+```php
+use Lada\Core\Domain\Order\{OrderRef, PlacementResult};
+use Lada\Core\Domain\Shared\Url;
+
+PlacementResult::placed(new OrderRef('2026/10/0001'));                // order created, payment accepted
+PlacementResult::requiresAction(Url::of('https://psp.example/3ds')); // buyer must finish (3-D Secure, hosted page)
+PlacementResult::declined('Insufficient funds');                    // no order
+PlacementResult::totalChanged($currentCartSnapshot);                // price changed — nothing charged
+PlacementResult::outOfStock([new LineRef('1')]);                    // lines no longer available — nothing charged
+```
+
+Lada maps each outcome to the right protocol status and message. Orders are reported back as an `OrderSnapshot`: `ref`, `status` (`Placed`, `Paid`, `Shipped`, `Delivered`, `Canceled`, `Refunded`), `lines`, `totals`, `placedAt` and an optional status-page `url`.
+
 ### Errors
 
 Every exception thrown by Lada implements `Lada\Core\Domain\Exception\LadaException`, so you can catch them in one place.
