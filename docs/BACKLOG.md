@@ -33,7 +33,7 @@ Each package has its own `composer.json` (for a later split with `splitsh-lite`)
 | 1.4 | Cart model: `CartLine`, `Totals`, `Message` + `Severity`, `FulfillmentOption`, `CartSnapshot` (completeness flags) | core | ✅ |
 | 1.5 | Catalog model: `Channel`, `PricingContext`, `SearchQuery`, `Product`, `ProductPage` | core | ✅ |
 | 1.6 | Buyer, payment and order model: `Buyer`, `Email`, `Address`, `CartDraft` + `DraftLine`, `PaymentInstrument`, `GatewayPayment`, `PlacementResult` (placed / requires action / declined / total changed / out of stock), `OrderSnapshot` | core | ✅ |
-| 1.7 | Shop ports: `CatalogPort`, `CartPort`, `OrderPlacementPort`, `OrderPort`, `PaymentHandler` + `PaymentHandlerRegistry` | core | ⬜ |
+| 1.7 | Shop ports: `CatalogPort`, `CartPort`, `OrderPlacementPort`, `OrderPort`, `PaymentHandler` + `PaymentHandlerRegistry` | core | ✅ |
 | 1.8 | `CheckoutStatus` enum + `CheckoutStatusResolver` (status derived from `CartSnapshot`) | core | ⬜ |
 | 1.9 | `CheckoutSession` aggregate: guarded transitions, domain events | core | ⬜ |
 | 1.10 | Infrastructure ports: `CheckoutSessionRepository`, `IdempotencyStore` (atomic claim), `ReplayGuard`, `KeyStore`, `WebhookOutbox` | core | ⬜ |

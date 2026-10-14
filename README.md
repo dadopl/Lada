@@ -276,6 +276,82 @@ PlacementResult::outOfStock([new LineRef('1')]);                    // lines no 
 
 Lada maps each outcome to the right protocol status and message. Orders are reported back as an `OrderSnapshot`: `ref`, `status` (`Placed`, `Paid`, `Shipped`, `Delivered`, `Canceled`, `Refunded`), `lines`, `totals`, `placedAt` and an optional status-page `url`.
 
+### Implementing the ports
+
+Your shop plugs into Lada through five interfaces in `Lada\Core\Application\Port`. Implement them on top of your existing code — the same pricing, cart and checkout your storefront uses.
+
+| Port | You implement | Notes |
+| --- | --- | --- |
+| `CatalogPort` | `search(SearchQuery): ProductPage`, `lookup(list<ProductRef>, PricingContext): list<Product>` | rank with your search engine; skip unknown refs in `lookup` |
+| `CartPort` | `create(CartDraft, PricingContext)`, `replace(CartRef, CartDraft)`, `get(CartRef)` → `CartSnapshot`; `release(CartRef)` | `replace` is a full replacement and must be idempotent; throw `CartNotFound` for unknown carts |
+| `OrderPlacementPort` | `place(CartRef, GatewayPayment, Buyer, IdempotencyKey): PlacementResult` | your regular checkout path; forward the idempotency key to your PSP |
+| `OrderPort` | `get(OrderRef): OrderSnapshot` | throw `OrderNotFound` for unknown orders |
+| `PaymentHandler` | `id()`, `describe(Channel)`, `toGatewayPayment(PaymentInstrument, CartSnapshot)` | one per accepted agent payment method; never calls a PSP |
+
+Example order placement on top of a command bus:
+
+```php
+use Lada\Core\Application\Port\OrderPlacementPort;
+use Lada\Core\Domain\Buyer\Buyer;
+use Lada\Core\Domain\Cart\CartRef;
+use Lada\Core\Domain\Order\{OrderRef, PlacementResult};
+use Lada\Core\Domain\Payment\GatewayPayment;
+use Lada\Core\Domain\Shared\{IdempotencyKey, Url};
+
+final readonly class OrderPlacementAdapter implements OrderPlacementPort
+{
+    public function __construct(private MessageBusInterface $commandBus) {}
+
+    public function place(CartRef $ref, GatewayPayment $payment, Buyer $buyer, IdempotencyKey $key): PlacementResult
+    {
+        try {
+            $orderId = $this->commandBus->dispatch(new PlaceOrder(
+                cartId: $ref->value,
+                paymentMethod: $payment->method,
+                paymentData: $payment->data,
+                customerEmail: $buyer->email?->value,
+                idempotencyKey: $key->value,
+            ))->last(HandledStamp::class)->getResult();
+
+            return PlacementResult::placed(new OrderRef($orderId));
+        } catch (PaymentRequiresRedirect $e) {
+            return PlacementResult::requiresAction(Url::of($e->redirectUrl));
+        } catch (PaymentDeclined $e) {
+            return PlacementResult::declined($e->getMessage());
+        }
+    }
+}
+```
+
+Example payment handler mapping a Google Pay token onto your Stripe payment method:
+
+```php
+use Lada\Core\Application\Port\PaymentHandler;
+use Lada\Core\Domain\Cart\CartSnapshot;
+use Lada\Core\Domain\Payment\{GatewayPayment, PaymentInstrument};
+use Lada\Core\Domain\Shared\Channel;
+
+final readonly class GooglePayHandler implements PaymentHandler
+{
+    public function id(): string
+    {
+        return 'com.google.pay';
+    }
+
+    public function describe(Channel $channel): array
+    {
+        return ['merchant_id' => 'BCR2DN4T…', 'allowed_card_networks' => ['VISA', 'MASTERCARD']];
+    }
+
+    public function toGatewayPayment(PaymentInstrument $instrument, CartSnapshot $cart): GatewayPayment
+    {
+        return new GatewayPayment('stripe', ['payment_method_data' => ['type' => 'card', 'card' => ['token' => $instrument->token]]]);
+    }
+}
+```
+
+Lada keeps the handlers in a `PaymentHandlerRegistry` and picks the right one by `PaymentInstrument::$handlerId` (`UnknownPaymentHandler` if none matches, `DuplicatePaymentHandler` if two share an id).
+
 ### Errors
 
 Every exception thrown by Lada implements `Lada\Core\Domain\Exception\LadaException`, so you can catch them in one place.
