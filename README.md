@@ -170,12 +170,12 @@ $snapshot = new CartSnapshot(
     messages: [
         new Message(Severity::Warning, 'low_stock', 'Only 3 left.', '$.line_items[0]'),
     ],
-    missing: [Requirement::BuyerEmail, Requirement::Payment],
+    missing: [Requirement::BuyerEmail],
 );
 ```
 
 - `messages` tell the agent what is wrong. `Severity` decides what happens next: `Info` and `Warning` never block, `Recoverable` blocks until the agent fixes it, `RequiresBuyerInput` / `RequiresBuyerReview` block until the buyer acts (Lada escalates to the buyer).
-- `missing` lists data you still need before placing the order (`BuyerEmail`, `ShippingAddress`, `BillingAddress`, `FulfillmentOption`, `Payment`).
+- `missing` lists data you still need before placing the order (`BuyerEmail`, `ShippingAddress`, `BillingAddress`, `FulfillmentOption`). Payment is not on the list — the agent hands it over together with the request to complete the checkout.
 - The snapshot validates itself: one currency everywhere, unique line and option ids, a selected option that is actually offered. A violation throws `InvalidCart` or `CurrencyMismatch`.
 
 ### Channel and catalog
@@ -223,6 +223,18 @@ $page = new ProductPage(
 
 `Url` accepts only absolute `http(s)` URLs, because agents can't resolve relative links. Invalid input throws `InvalidChannel`, `InvalidCountry`, `InvalidUrl` or `InvalidCatalog`.
 
+### Checkout status
+
+You never set a checkout status yourself. Lada derives it from your `CartSnapshot` — you say *what* is wrong, Lada decides *who* has to act:
+
+| Your snapshot contains | Status | Who acts |
+| --- | --- | --- |
+| a message with `RequiresBuyerInput` or `RequiresBuyerReview` | `RequiresEscalation` | the buyer (the agent hands over) |
+| no lines, anything in `missing`, or a `Recoverable` message | `Incomplete` | the agent (adds data, picks another option) |
+| none of the above (`Info` / `Warning` messages are fine) | `ReadyForComplete` | the agent may complete with a payment |
+
+Escalation wins over everything else: if the buyer has to act, missing data does not matter yet. The remaining statuses — `CompleteInProgress`, `Completed`, `Canceled`, `Expired` — follow from the checkout lifecycle; the last three are final (`CheckoutStatus::isFinal()`). Protocol bindings map these statuses onto UCP's and ACP's own ones.
+
 ### Cart draft
 
 When an agent creates or updates a cart, your adapter receives a `CartDraft`: the **complete** state the agent wants (always a full replacement, never a patch). You apply it to your own cart and answer with a `CartSnapshot`.
@@ -242,7 +254,7 @@ Agents collect buyer data step by step, so every buyer field is optional. Report
 
 ### Payment
 
-Agents hand over payment credentials (Google Pay token, ACP Shared Payment Token) as a `PaymentInstrument`. **Lada never charges it.** A payment handler (port in step 1.7) translates it into a `GatewayPayment`, which is one of *your* payment methods plus the data *your* gateway expects:
+Agents hand over payment credentials (Google Pay token, ACP Shared Payment Token) as a `PaymentInstrument`. **Lada never charges it.** A `PaymentHandler` (see [Implementing the ports](#implementing-the-ports)) translates it into a `GatewayPayment`, which is one of *your* payment methods plus the data *your* gateway expects:
 
 ```php
 use Lada\Core\Domain\Payment\GatewayPayment;
