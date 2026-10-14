@@ -1,6 +1,6 @@
 # Lada — implementation plan
 
-Status: draft, 2026-10-14. Nothing is implemented yet; this document describes what will be built and in what order.
+Status: draft, 2026-10-14. This document describes what will be built and in what order; the step-by-step breakdown and progress live in [BACKLOG.md](BACKLOG.md).
 
 ## 1. Goal and scope
 
@@ -44,7 +44,7 @@ A monorepo split into separate Composer packages (via `symplify/monorepo-builder
 
 | Package | Contents | Depends on |
 | --- | --- | --- |
-| `lada/core` | session model, state machine, ports, domain exceptions, `Money` in minor units | PHP 8.3, `psr/clock`, `psr/log` |
+| `lada/core` | session model, state machine, ports, domain exceptions, `Money` in minor units | PHP 8.5, `psr/clock`, `psr/log` |
 | `lada/http-signatures` | RFC 9421 signing and verification, RFC 9530 Content-Digest, JWK (ES256, ES384, Ed25519) | `ext-openssl`, `ext-sodium` (or `web-token/jwt-library`) |
 | `lada/ucp` | profile, negotiation, UCP ↔ core schema mapping, error codes | core, http-signatures |
 | `lada/acp` | discovery, `API-Version`, ACP session ↔ core mapping, webhook HMAC | core |
@@ -255,9 +255,11 @@ Console commands: `lada:keys:generate`, `lada:keys:rotate`, `lada:profile:dump` 
 - **Port contract tests**: `lada/testkit` ships abstract tests every shop adapter must pass (e.g. `replace()` is idempotent, total after `place()` equals the last snapshot total).
 - **Failure scenarios**: two concurrent `complete` calls with the same key → one order; gateway exception → no order and no charge; price change between update and complete → `TotalChanged`; replayed signature → rejected.
 - **E2E** on Sylius in Docker: a test agent walks the full UCP, ACP and MCP flows with a PSP in test mode.
-- **CI**: PHPStan max, Psalm taint analysis on controllers, Infection on core, matrix PHP 8.3–8.5 × Symfony 7.x.
+- **CI**: PHPStan max, Psalm taint analysis on controllers, Infection on core, PHP 8.5 × Symfony 7.x.
 
 ## 9. Milestones
+
+Each milestone is split into small, one-pull-request steps in [BACKLOG.md](BACKLOG.md).
 
 Ordered by what can actually go live today: visibility and cart handoff first, native checkout once agent platforms enable it in a given market. Estimates for one full-time developer.
 
@@ -286,7 +288,7 @@ About 4–5 months to 1.0; milestones 1–3 (about 2 months) already make a usef
 **Open decisions**
 
 - [ ] License (MIT vs MIT core + commercial bridges).
-- [ ] Minimum versions: PHP 8.3 or 8.4, Symfony 7.3+?
+- [x] Minimum PHP version: 8.5. Symfony 7.3+ (to be confirmed with the bundle skeleton).
 - [ ] First PSP for the Google Pay handler: Stripe (simplest) or Adyen / PayU?
 - [ ] Separate session table vs. a reference stored only in the shop's cart.
 - [ ] Publish protocol SDKs (`lada/ucp`, `lada/acp`) under neutral vendor names to attract contributors?
