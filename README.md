@@ -68,6 +68,41 @@ lada:
         mcp: { enabled: true, auth: oauth }
 ```
 
+## Usage
+
+> The packages are not published yet. This section grows with every implemented step and only documents what already works.
+
+### Installation
+
+```bash
+composer require lada/core
+```
+
+### Money
+
+Every amount in Lada is a `Money` in **minor units** (grosze, cents) of one currency. Lada never computes prices — `Money` only carries amounts reported by your shop and compares them.
+
+```php
+use Lada\Core\Domain\Shared\Currency;
+use Lada\Core\Domain\Shared\Money;
+
+$pln = Currency::of('PLN');                 // ISO 4217, throws InvalidCurrency otherwise
+
+$unitPrice = Money::of(12_99, $pln);        // 12.99 PLN
+$lineTotal = $unitPrice->multiply(3);       // 38.97 PLN
+$total     = $lineTotal->add(Money::of(15_00, $pln));
+
+$total->equals(Money::of(53_97, $pln));     // true
+$total->isGreaterThan(Money::zero($pln));   // true
+$total->add(Money::of(1, Currency::of('EUR'))); // throws CurrencyMismatch
+```
+
+`Money` is immutable; every operation returns a new instance.
+
+### Errors
+
+Every exception thrown by Lada implements `Lada\Core\Domain\Exception\LadaException`, so you can catch them in one place.
+
 ## Roadmap
 
 1. Foundation — core, HTTP signatures, testkit, bundle skeleton
