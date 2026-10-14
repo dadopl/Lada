@@ -235,6 +235,38 @@ You never set a checkout status yourself. Lada derives it from your `CartSnapsho
 
 Escalation wins over everything else: if the buyer has to act, missing data does not matter yet. The remaining statuses — `CompleteInProgress`, `Completed`, `Canceled`, `Expired` — follow from the checkout lifecycle; the last three are final (`CheckoutStatus::isFinal()`). Protocol bindings map these statuses onto UCP's and ACP's own ones.
 
+### Checkout session lifecycle
+
+Lada keeps one `CheckoutSession` per agent purchase. It is deliberately thin: it points at your cart (`cartRef`), remembers the total last shown to the agent and guards the transitions — you don't call it directly, Lada's use cases do.
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> Open: open (status from your cart)
+    state Open {
+        Incomplete
+        RequiresEscalation
+        ReadyForComplete
+    }
+    Open --> Open: updateCart
+    ReadyForComplete --> CompleteInProgress: startCompletion
+    CompleteInProgress --> Open: abortCompletion (declined, total changed, out of stock)
+    CompleteInProgress --> RequiresEscalation: requireBuyerAction (3-D Secure, hosted page)
+    CompleteInProgress --> Completed: complete
+    Open --> Completed: complete (buyer finished on your site)
+    Open --> Canceled: cancel
+    Open --> Expired: expire
+```
+
+Guarantees:
+
+- No changes while the order is being placed (`CompleteInProgress`), so two parallel completions can't both reach your shop.
+- No cancel or update after `Completed`, `Canceled` or `Expired`; no update or completion after `expiresAt`.
+- A session only accepts snapshots of its own cart.
+- Violations throw `CheckoutNotAllowed`.
+
+The session records domain events — `CheckoutSessionOpened`, `CheckoutSessionCompleted`, `CheckoutSessionCanceled`, `CheckoutSessionExpired` — which Lada publishes after saving it (e.g. to release your cart when a session is canceled or expires).
+
 ### Cart draft
 
 When an agent creates or updates a cart, your adapter receives a `CartDraft`: the **complete** state the agent wants (always a full replacement, never a patch). You apply it to your own cart and answer with a `CartSnapshot`.
