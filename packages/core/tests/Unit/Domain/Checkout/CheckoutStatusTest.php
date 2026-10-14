@@ -13,29 +13,31 @@ final class CheckoutStatusTest extends TestCase
 {
     #[Test]
     #[DataProvider('statuses')]
-    public function it_knows_which_statuses_are_final(CheckoutStatus $status, bool $expected): void
+    public function it_knows_which_statuses_are_final_and_open(CheckoutStatus $status, bool $final, bool $open): void
     {
         // Arrange
         // (status from the data provider)
 
         // Act
         $isFinal = $status->isFinal();
+        $isOpen = $status->isOpen();
 
         // Assert
-        self::assertSame($expected, $isFinal);
+        self::assertSame($final, $isFinal);
+        self::assertSame($open, $isOpen);
     }
 
     /**
-     * @return iterable<string, array{CheckoutStatus, bool}>
+     * @return iterable<string, array{CheckoutStatus, bool, bool}>
      */
     public static function statuses(): iterable
     {
-        yield 'incomplete' => [CheckoutStatus::Incomplete, false];
-        yield 'requires escalation' => [CheckoutStatus::RequiresEscalation, false];
-        yield 'ready for complete' => [CheckoutStatus::ReadyForComplete, false];
-        yield 'complete in progress' => [CheckoutStatus::CompleteInProgress, false];
-        yield 'completed' => [CheckoutStatus::Completed, true];
-        yield 'canceled' => [CheckoutStatus::Canceled, true];
-        yield 'expired' => [CheckoutStatus::Expired, true];
+        yield 'incomplete' => [CheckoutStatus::Incomplete, false, true];
+        yield 'requires escalation' => [CheckoutStatus::RequiresEscalation, false, true];
+        yield 'ready for complete' => [CheckoutStatus::ReadyForComplete, false, true];
+        yield 'complete in progress' => [CheckoutStatus::CompleteInProgress, false, false];
+        yield 'completed' => [CheckoutStatus::Completed, true, false];
+        yield 'canceled' => [CheckoutStatus::Canceled, true, false];
+        yield 'expired' => [CheckoutStatus::Expired, true, false];
     }
 }

@@ -32,4 +32,12 @@ enum CheckoutStatus: string
             self::Incomplete, self::RequiresEscalation, self::ReadyForComplete, self::CompleteInProgress => false,
         };
     }
+
+    /**
+     * Open sessions accept changes from the agent: not final and not locked by a running completion.
+     */
+    public function isOpen(): bool
+    {
+        return !$this->isFinal() && self::CompleteInProgress !== $this;
+    }
 }
