@@ -9,15 +9,17 @@
 ## Language and tooling
 
 - **PHP 8.5.** Every file starts with `declare(strict_types=1);`.
-- Development runs in Docker, so the host PHP version does not matter:
+- Development commands are Composer scripts:
 
   ```bash
-  make install   # composer install in the PHP 8.5 container
-  make test      # PHPUnit
-  make stan      # PHPStan, level max
-  make cs        # PHP-CS-Fixer (dry run); make cs-fix applies fixes
-  make ci        # everything CI runs
+  composer install
+  composer test      # PHPUnit
+  composer stan      # PHPStan, level max
+  composer cs        # PHP-CS-Fixer (dry run); composer cs-fix applies fixes
+  composer ci        # everything CI runs
   ```
+
+- How you get PHP 8.5 locally (system package, Docker, …) is up to you; no environment tooling is committed to the repository.
 
 ## Architecture: DDD + hexagonal
 
